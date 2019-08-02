@@ -17,7 +17,10 @@ RUN microdnf install -y bash gzip tar jq python3-six python3-pip && microdnf -y 
     \
     # install yq (depends on jq and pyyaml - if jq and pyyaml not already installed, this will try to compile it)
     /usr/bin/pip3.6 install --user yq && \
-    cp /root/.local/bin/yq /usr/local/bin/ && chmod +x /usr/local/bin/yq && \
+    # could be installed in /opt/app-root/src/.local/bin or /root/.local/bin
+    if [[ -f /opt/app-root/src/.local/bin/yq ]]; then cp /opt/app-root/src/.local/bin/yq /usr/local/bin/; \
+    elif [[ -f /root/.local/bin/yq ]]; then cp /root/.local/bin/yq /usr/local/bin/; fi && \
+    chmod +x /usr/local/bin/yq && \
     ln -s /usr/bin/python3.6 /usr/bin/python
 
 # for debugging only
