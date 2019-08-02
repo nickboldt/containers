@@ -6,23 +6,22 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
-FROM registry.access.redhat.com/ubi8/s2i-core:1-80
+FROM registry.access.redhat.com/ubi8-minimal:8.0
 
 # enable epel 7 content set to resolve jq as rpm
 COPY content_sets_epel7.repo /etc/yum.repos.d/
 
-RUN yum install -y bash gzip tar jq python3-six python3-pip && yum -y clean all && \
-    \
+RUN microdnf install -y bash yum gzip tar jq python3-six python3-pip && microdnf -y clean all && \
     # install yq (depends on jq and pyyaml - if jq and pyyaml not already installed, this will try to compile it)
     /usr/bin/pip3.6 install --user yq && \
     # could be installed in /opt/app-root/src/.local/bin or /root/.local/bin
     if [[ -f /opt/app-root/src/.local/bin/yq ]]; then cp /opt/app-root/src/.local/bin/yq /usr/local/bin/; \
-    elif [[ -f /opt/app-root/src/.local/bin/yq ]]; then cp /opt/app-root/src/.local/bin/yq /usr/local/bin/; fi && \
+    elif [[ -f /root/.local/bin/yq ]]; then cp /root/.local/bin/yq /usr/local/bin/; fi && \
     chmod +x /usr/local/bin/yq && \
     ln -s /usr/bin/python3.6 /usr/bin/python
 
 # for debugging only
-# RUN yum install -y util-linux && whereis python pip jq yq && python --version && jq --version && yq --version
+# RUN microdnf install -y util-linux && whereis python pip jq yq && python --version && jq --version && yq --version
 
 #### BEGIN PARTIAL COPY FROM https://access.redhat.com/containers/?architecture=AMD64&tab=docker-file#/registry.access.redhat.com/rhel8/httpd-24/images/1-42
 ENV HTTPD_VERSION=2.4
@@ -47,9 +46,11 @@ ENV HTTPD_CONTAINER_SCRIPTS_PATH=/usr/share/container-scripts/httpd/ \
     HTTPD_DATA_PATH=/var/www \
     HTTPD_DATA_ORIG_PATH=/var/www \
     HTTPD_LOG_PATH=/var/log/httpd
+
 #### END PARTIAL COPY FROM registry.access.redhat.com/rhel8/httpd-24
 
-RUN sed -e "s,Listen 80,Listen 8080," \
+RUN microdnf remove -y yum && microdnf -y clean all && \
+    sed -e "s,Listen 80,Listen 8080," \
         -e "s,logs/error_log,/dev/stderr," \
         -e "s,logs/access_log,/dev/stdout," \
         -e "s,AllowOverride None,AllowOverride All," \
