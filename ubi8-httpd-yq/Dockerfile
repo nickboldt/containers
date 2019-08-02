@@ -47,15 +47,6 @@ ENV HTTPD_CONTAINER_SCRIPTS_PATH=/usr/share/container-scripts/httpd/ \
     HTTPD_DATA_PATH=/var/www \
     HTTPD_DATA_ORIG_PATH=/var/www \
     HTTPD_LOG_PATH=/var/log/httpd
-
-#COPY ./s2i/bin/ $STI_SCRIPTS_PATH
-#COPY ./root /
-# Reset permissions of filesystem to default values
-# RUN /usr/libexec/httpd-prepare && rpm-file-permissions
-
-# USER 1001
-# CMD ["/usr/bin/run-httpd"]
-
 #### END PARTIAL COPY FROM registry.access.redhat.com/rhel8/httpd-24
 
 RUN sed -e "s,Listen 80,Listen 8080," \
