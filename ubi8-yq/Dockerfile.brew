@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
-FROM registry.redhat.io/ubi8-minimal:8.0
+FROM ubi8-minimal:8.0
 
 # to get all the python deps pre-fetched so we can build in Brew:
 # 1. extract files in the container to your local filesystem
@@ -25,7 +25,7 @@ COPY content_sets_brew.repo /etc/yum.repos.d/
 
 # NOTE: if you can't install jq and pyyaml as rpms, you may need pip to compile them for you.
 # Install these rpms to allow compilation: gcc automake make autoconf libtool platform-python-devel python3 python3-devel
-RUN microdnf install -y bash gzip tar jq python3-six python3-pip && microdnf clean all && \
+RUN microdnf install -y bash gzip tar jq python3-six python3-pip && microdnf -y clean all && \
     \
     # if we copied the tarball above, we can use it here
     mkdir -p /root/.local/ && tar xzf /tmp/root-local.tgz -C /root/.local/ && \
