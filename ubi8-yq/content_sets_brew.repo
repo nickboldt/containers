@@ -9,11 +9,3 @@ name=rhel8-appstream
 baseurl=http://pulp.dist.prod.ext.phx2.redhat.com/content/dist/rhel8/8/x86_64/appstream/os/
 enabled=1
 gpgcheck=0
-
-[epel-7]
-name=epel-7
-baseurl=https://download.fedoraproject.org/pub/epel/7/x86_64/
-enabled=1
-gpgcheck=0
-
-
