@@ -10,25 +10,7 @@
 #
 
 # https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8-minimal
-FROM ubi8-minimal:8.0-159
-
-ENV SUMMARY="Red Hat CodeReady Workspaces plugin registry container" \
-    DESCRIPTION="Red Hat CodeReady Workspaces plugin registry container" \
-    PRODNAME="codeready-workspaces" \
-    COMPNAME="pluginregistry-rhel8"
-
-LABEL summary="$SUMMARY" \
-      description="$DESCRIPTION" \
-      io.k8s.description="$DESCRIPTION" \
-      io.k8s.display-name="$DESCRIPTION" \
-      io.openshift.tags="$PRODNAME,$COMPNAME" \
-      com.redhat.component="$PRODNAME-$COMPNAME-container" \
-      name="$PRODNAME/$COMPNAME" \
-      version="2.0" \
-      license="EPLv2" \
-      maintainer="Nick Boldt <nboldt@redhat.com>" \
-      io.openshift.expose-services="" \
-      usage=""
+FROM registry.access.redhat.com/ubi8-minimal:8.0-159
 
 USER root
 
@@ -44,9 +26,6 @@ USER root
 #    cd /tmp/root-local && sudo tar cvzf root-local.tgz lib/ bin/ && cd - && mv -f /tmp/root-local/root-local.tgz . && sudo rm -fr /tmp/root-local/
 # 3. then add it to dist-git so it's part of this repo
 #    rhpkg new-sources root-local.tgz 
-
-# built in Brew, use tarball in lookaside cache
-COPY root-local.tgz /tmp/root-local.tgz
 
 # NOTE: uncomment for local build. Must also set full registry path in FROM to registry.redhat.io or registry.access.redhat.com
 # enable rhel 8 content sets (from Brew) to resolve jq as rpm
