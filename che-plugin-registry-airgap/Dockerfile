@@ -12,6 +12,24 @@
 # https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8-minimal
 FROM registry.access.redhat.com/ubi8-minimal:8.0-159
 
+ENV SUMMARY="Red Hat CodeReady Workspaces plugin registry container" \
+    DESCRIPTION="Red Hat CodeReady Workspaces plugin registry container" \
+    PRODNAME="codeready-workspaces" \
+    COMPNAME="pluginregistry-rhel8"
+
+LABEL summary="$SUMMARY" \
+      description="$DESCRIPTION" \
+      io.k8s.description="$DESCRIPTION" \
+      io.k8s.display-name="$DESCRIPTION" \
+      io.openshift.tags="$PRODNAME,$COMPNAME" \
+      com.redhat.component="$PRODNAME-$COMPNAME-container" \
+      name="$PRODNAME/$COMPNAME" \
+      version="2.0" \
+      license="EPLv2" \
+      maintainer="Nick Boldt <nboldt@redhat.com>" \
+      io.openshift.expose-services="" \
+      usage=""
+
 USER root
 
 ################# 
@@ -27,12 +45,16 @@ USER root
 # 3. then add it to dist-git so it's part of this repo
 #    rhpkg new-sources root-local.tgz 
 
+# built in Brew, use tarball in lookaside cache
+# COPY root-local.tgz /tmp/root-local.tgz
+
 # NOTE: uncomment for local build. Must also set full registry path in FROM to registry.redhat.io or registry.access.redhat.com
 # enable rhel 8 content sets (from Brew) to resolve jq as rpm
 COPY content_sets.repo /etc/yum.repos.d/
 
 RUN microdnf install -y bash yum gzip tar jq python3-six python3-pip && microdnf -y clean all && \
     # install yq (depends on jq and pyyaml - if jq and pyyaml not already installed, this will try to compile it)
+    if [[ -f /tmp/root-local.tgz ]]; then mkdir -p /root/.local && tar xf /tmp/root-local.tgz -C /root/.local/ && rm -fr /tmp/root-local.tgz; fi && \
     /usr/bin/pip3.6 install --user yq && \
     # could be installed in /opt/app-root/src/.local/bin or /root/.local/bin
     if [[ -f /opt/app-root/src/.local/bin/yq ]]; then cp /opt/app-root/src/.local/bin/yq /usr/local/bin/; \
@@ -113,7 +135,7 @@ RUN chmod -c +x /var/www/html/*.sh && \
     ./index.sh v3 > /var/www/html/v3/plugins/index.json && \
     chmod -c -R g+rwX /var/www/html/v3/plugins
 
-# optional steps for air gap
+# optional steps for air gap - not supported in Brew unless we prefetch this and inject it to dist-git like the yq deps above
 RUN ./fetch_resources.sh v3 && ./fetch_containers.sh v3
 
 ENV HOME /home/jboss
