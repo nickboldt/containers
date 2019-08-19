@@ -27,7 +27,7 @@ i=0; for metayaml in ${metayamls}; do
   let i=i+1
   echo "[$i/$c] Fetch from '${metayaml%/meta.yaml}'"
   # get files into local repo
-  for remotefile in $(cat $metayaml | egrep "https://|http://" | egrep -v "0.0.0.0/resources" | egrep "\.(${EXTS})" | sed -e "s#\(icon: \|  - \)##g" | tr -d "\n\r\""); do
+  for remotefile in $(cat $metayaml | egrep "https://|http://" | egrep -v "0.0.0.0/resources" | egrep "\.(${EXTS})" | sed -e "s#\(icon: \|  - \)# #g" | tr -d "\n\r\""); do
     remotefilepath=${remotefile#*//}; # trim off protocol
     remotefilepath=${remotefilepath%\?*}; # trim off querystring
     remotefiledir=${remotefilepath%/*}; # get the dir into which the file will be downloaded

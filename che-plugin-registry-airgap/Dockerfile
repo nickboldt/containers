@@ -38,7 +38,7 @@ USER root
 
 # to get all the python deps pre-fetched so we can build in Brew:
 # 1. extract files in the container to your local filesystem
-#    CONTAINERNAME="quay.io/nickboldt/ubi8-httpd-yq:brew"
+#    CONTAINERNAME="pluginregistry"
 #    mkdir -p /tmp/root-local/ && docker run -it -v /tmp/root-local/:/tmp/root-local/ ${CONTAINERNAME} /bin/bash -c "cd /root/.local/ && cp -r bin/ lib/ /tmp/root-local/"
 # 2. then back on your own machine, tar them up and put them in this folder
 #    cd /tmp/root-local && sudo tar cvzf root-local.tgz lib/ bin/ && cd - && mv -f /tmp/root-local/root-local.tgz . && sudo rm -fr /tmp/root-local/
@@ -50,15 +50,21 @@ USER root
 
 # NOTE: uncomment for local build. Must also set full registry path in FROM to registry.redhat.io or registry.access.redhat.com
 # enable rhel 8 content sets (from Brew) to resolve jq as rpm
-COPY content_sets.repo /etc/yum.repos.d/
+COPY content_sets_epel7.repo /etc/yum.repos.d/
 
 RUN microdnf install -y bash yum gzip tar jq python3-six python3-pip && microdnf -y clean all && \
     # install yq (depends on jq and pyyaml - if jq and pyyaml not already installed, this will try to compile it)
     if [[ -f /tmp/root-local.tgz ]]; then mkdir -p /root/.local && tar xf /tmp/root-local.tgz -C /root/.local/ && rm -fr /tmp/root-local.tgz; fi && \
     /usr/bin/pip3.6 install --user yq && \
     # could be installed in /opt/app-root/src/.local/bin or /root/.local/bin
-    if [[ -f /opt/app-root/src/.local/bin/yq ]]; then cp /opt/app-root/src/.local/bin/yq /usr/local/bin/; \
-    elif [[ -f /root/.local/bin/yq ]]; then cp /root/.local/bin/yq /usr/local/bin/; fi && \
+    for d in /opt/app-root/src/.local /root/.local; do \
+      if [[ -d ${d} ]]; then \
+        cp ${d}/bin/yq /usr/local/bin/; \
+        pushd ${d}/lib/python3.6/site-packages/ >/dev/null; \
+          cp -r PyYAML* xmltodict* yaml* yq* /usr/lib/python3.6/site-packages/; \
+        popd >/dev/null; \
+      fi; \
+    done && \
     chmod +x /usr/local/bin/yq && \
     ln -s /usr/bin/python3.6 /usr/bin/python
 
@@ -133,10 +139,11 @@ RUN chmod -c +x /var/www/html/*.sh && \
     ./check_plugins_viewer_mandatory_fields.sh && \
     ./ensure_latest_exists.sh && \
     ./index.sh v3 > /var/www/html/v3/plugins/index.json && \
+    ./list_containers.sh v3 && \
     chmod -c -R g+rwX /var/www/html/v3/plugins
 
 # optional steps for air gap - not supported in Brew unless we prefetch this and inject it to dist-git like the yq deps above
-RUN ./fetch_resources.sh v3 && ./fetch_containers.sh v3
+RUN ./fetch_resources.sh v3
 
 ENV HOME /home/jboss
 USER jboss
