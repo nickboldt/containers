@@ -1,3 +1,11 @@
+This is a fork of https://github.com/eclipse/che-plugin-registry ->  http://quay.io/eclipse/che-plugin-registry:nightly.
+
+For the reason for this fork and how it differs, see:
+
+https://github.com/redhat-developer/codeready-workspaces/blob/master/devdoc/building/che7-custom-resource-airgap-offline-plugin-registry.adoc#deploying-che-7-with-an-offline-plugin-registry
+
+---------------------------------------------
+
 [![CircleCI](https://circleci.com/gh/eclipse/che-plugin-registry.svg?style=svg)](https://circleci.com/gh/eclipse/che-plugin-registry)
 [![Build Status](https://ci.centos.org/buildStatus/icon?job=devtools-che-plugin-registry-build-master/)](https://ci.centos.org/job/devtools-che-plugin-registry-build-master/)
 [![Build Status](https://ci.centos.org/buildStatus/icon?job=devtools-che-plugin-registry-nightly/)](https://ci.centos.org/job/devtools-che-plugin-registry-nightly/)
