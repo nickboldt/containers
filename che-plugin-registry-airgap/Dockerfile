@@ -143,7 +143,7 @@ RUN chmod -c +x /var/www/html/*.sh && \
     chmod -c -R g+rwX /var/www/html/v3/plugins
 
 # optional steps for air gap - not supported in Brew unless we prefetch this and inject it to dist-git like the yq deps above
-RUN ./fetch_resources.sh v3
+# RUN ./fetch_resources.sh v3
 
 ENV HOME /home/jboss
 USER jboss
