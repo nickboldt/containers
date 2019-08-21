@@ -139,12 +139,13 @@ RUN chmod -c +x /var/www/html/*.sh && \
     ./check_plugins_viewer_mandatory_fields.sh && \
     ./ensure_latest_exists.sh && \
     ./index.sh v3 > /var/www/html/v3/plugins/index.json && \
-    ./list_containers.sh v3 && \
     chmod -c -R g+rwX /var/www/html/v3/plugins
 
 # optional steps for air gap - not supported in Brew unless we prefetch this and inject it to dist-git like the yq deps above
 # RUN ./fetch_resources.sh v3
-# RUN ./replace_container_repos.sh v3 myquay.mycorp.com
+
+# optional steps for air gap - replace references to docker.io, quay.io, registry.access.redhat.com, registry.redhat.io with internal registry
+# RUN ./list_containers.sh v3 && ./replace_container_repos.sh v3 myquay.mycorp.com
 
 ENV HOME /home/jboss
 USER jboss
