@@ -9,7 +9,7 @@ else
 	nightly="nightly"
 	now=`date +%Y%m%d-%H%M`
 fi
-exit
+
 now=`date +%Y%m%d-%H%M`
 docker build . -t quay.io/nickboldt/airgap-che-plugin-registry:${nightly} --no-cache
 docker tag quay.io/nickboldt/airgap-che-plugin-registry:{${nightly},${now}}
