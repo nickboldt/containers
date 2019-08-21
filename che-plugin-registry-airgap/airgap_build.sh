@@ -1,7 +1,7 @@
 #!/bin/bash
 sed -i Dockerfile -e "s%#.*RUN ./fetch_resources.sh%RUN ./fetch_resources.sh%"
 if [[ $1 ]]; then
-	sed -i Dockerfile -e "s%#.*RUN ./list_containers.sh v3%RUN ./list_containers.sh%"
+	sed -i Dockerfile -e "s%#.*RUN ./list_containers.sh%RUN ./list_containers.sh%"
 	sed -i Dockerfile -e "s%myquay.mycorp.com%${1}%"
 	nightly="${1%%.*}" # first section of the URL replacement
 	now="${nightly}-`date +%Y%m%d-%H%M`" # append timestamp

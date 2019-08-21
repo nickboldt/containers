@@ -13,11 +13,12 @@
 set -e
 
 if [[ ! $1 ]]; then DIR=$(dirname "$0"); else DIR="$1"; fi
+if [[ ! $2 ]]; then LABEL="external"; else LABEL="$2"; fi
 
 declare -A images
 
 # search in a plugin folder, eg., $1 = v3/
-echo "BEGIN list of external containers in $DIR folder:"
+echo "BEGIN list of ${LABEL} containers in $DIR folder:"
 metayamls="$(find "$DIR" -name "meta.yaml" | sort)"
 c=0; for metayaml in ${metayamls}; do let c=c+1; done
 i=0; for metayaml in ${metayamls}; do
@@ -35,4 +36,4 @@ sorted_images=(); while read -d $'\0' elem; do sorted_images[${#sorted_images[@]
 for image in "${sorted_images[@]}"; do 
     echo "  $image"
 done
-echo "END list of external containers in $DIR folder"
+echo "END list of ${LABEL} containers in $DIR folder"
