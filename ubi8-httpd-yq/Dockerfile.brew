@@ -1,4 +1,3 @@
-#
 # Copyright (c) 2019 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
@@ -6,7 +5,14 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+# https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8-minimal
 FROM ubi8-minimal:8.0
+
+USER root
 
 # to get all the python deps pre-fetched so we can build in Brew:
 # 1. extract files in the container to your local filesystem
@@ -23,12 +29,22 @@ COPY root-local.tgz /tmp/root-local.tgz
 # enable rhel 8 content sets (from Brew) to resolve jq as rpm
 COPY content_sets_brew.repo /etc/yum.repos.d/
 
-RUN microdnf install -y bash yum gzip tar jq python3-six python3-pip && microdnf -y clean all && \
+RUN microdnf install -y bash yum gzip tar findutils jq python3-six python3-pip && microdnf -y clean all && \
+    \
+    # if we copied the tarball above, we can use it here
+    if [[ -f /tmp/root-local.tgz ]]; then mkdir -p /root/.local/ && tar xzf /tmp/root-local.tgz -C /root/.local/; fi && \
+    \
     # install yq (depends on jq and pyyaml - if jq and pyyaml not already installed, this will try to compile it)
     /usr/bin/pip3.6 install --user yq && \
     # could be installed in /opt/app-root/src/.local/bin or /root/.local/bin
-    if [[ -f /opt/app-root/src/.local/bin/yq ]]; then cp /opt/app-root/src/.local/bin/yq /usr/local/bin/; \
-    elif [[ -f /root/.local/bin/yq ]]; then cp /root/.local/bin/yq /usr/local/bin/; fi && \
+    for d in /opt/app-root/src/.local /root/.local; do \
+      if [[ -d ${d} ]]; then \
+        cp ${d}/bin/yq /usr/local/bin/; \
+        pushd ${d}/lib/python3.6/site-packages/ >/dev/null; \
+          cp -r PyYAML* xmltodict* yaml* yq* /usr/lib/python3.6/site-packages/; \
+        popd >/dev/null; \
+      fi; \
+    done && \
     chmod +x /usr/local/bin/yq && \
     ln -s /usr/bin/python3.6 /usr/bin/python
 
@@ -42,7 +58,7 @@ EXPOSE 8080
 EXPOSE 8443
 
 RUN yum -y module enable httpd:$HTTPD_VERSION && \
-    # can't find mod_auth_mellon
+    # TODO: can't find mod_auth_mellon -- do we need it?
     INSTALL_PKGS="gettext hostname nss_wrapper bind-utils httpd mod_ssl" && \
     yum install -y --setopt=tsflags=nodocs $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
@@ -61,20 +77,30 @@ ENV HTTPD_CONTAINER_SCRIPTS_PATH=/usr/share/container-scripts/httpd/ \
 
 #### END PARTIAL COPY FROM registry.access.redhat.com/rhel8/httpd-24
 
-RUN microdnf remove -y yum && microdnf -y clean all && \
-    sed -e "s,Listen 80,Listen 8080," \
+# finish setting up httpd
+RUN adduser --gid 0 jboss && mkdir -p /home/jboss /data /logs && \
+    chown -c jboss:root /home/jboss && chmod -c 0775 /home/jboss && \
+    chgrp -c -R 0     /home/jboss /data /logs && \
+    chmod -c -R g+rwX /home/jboss /data /logs && \
+    chmod -c -R a+rwX  /etc/httpd/conf /run/httpd /var/log/httpd && \
+    chmod -c 666 /etc/passwd && \
+    microdnf remove -y yum && microdnf -y clean all && \
+    sed -e "s,80,8080," \
         -e "s,logs/error_log,/dev/stderr," \
         -e "s,logs/access_log,/dev/stdout," \
         -e "s,AllowOverride None,AllowOverride All," \
         -i /etc/httpd/conf/httpd.conf && \
-    # the htpasswd file may be periodically replaced during run
-    chmod a+rwX  /etc/httpd/conf /run/httpd && \
+    sed -e "s,443,8443," -i /etc/httpd/conf.d/ssl.conf && \
     # generate missing self-signed cert
     for i in {1..7}; do echo "" >> /tmp/dots; done && \
     cat /tmp/dots | openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout /etc/pki/tls/private/localhost.key -out /etc/ssl/certs/localhost.crt
+    -keyout /etc/pki/tls/private/localhost.key -out /etc/ssl/certs/localhost.crt && \
+    chmod -c g+rwX /etc/pki/tls/private/localhost.key && \
+    rm -f /tmp/dots
 
+# do we need these 2 ports?
 EXPOSE 80
+EXPOSE 443
 
 STOPSIGNAL SIGWINCH
 

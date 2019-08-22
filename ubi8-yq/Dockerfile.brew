@@ -1,4 +1,3 @@
-#
 # Copyright (c) 2019 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
@@ -6,7 +5,14 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+# https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8-minimal
 FROM ubi8-minimal:8.0
+
+USER root
 
 # to get all the python deps pre-fetched so we can build in Brew:
 # 1. extract files in the container to your local filesystem
@@ -23,18 +29,22 @@ COPY root-local.tgz /tmp/root-local.tgz
 # enable rhel 8 content sets (from Brew) to resolve jq as rpm
 COPY content_sets_brew.repo /etc/yum.repos.d/
 
-# NOTE: if you can't install jq and pyyaml as rpms, you may need pip to compile them for you.
-# Install these rpms to allow compilation: gcc automake make autoconf libtool platform-python-devel python3 python3-devel
-RUN microdnf install -y bash gzip tar jq python3-six python3-pip && microdnf -y clean all && \
+RUN microdnf install -y bash gzip tar findutils jq python3-six python3-pip && microdnf -y clean all && \
     \
     # if we copied the tarball above, we can use it here
-    mkdir -p /root/.local/ && tar xzf /tmp/root-local.tgz -C /root/.local/ && \
+    if [[ -f /tmp/root-local.tgz ]]; then mkdir -p /root/.local/ && tar xzf /tmp/root-local.tgz -C /root/.local/; fi && \
     \
     # install yq (depends on jq and pyyaml - if jq and pyyaml not already installed, this will try to compile it)
     /usr/bin/pip3.6 install --user yq && \
     # could be installed in /opt/app-root/src/.local/bin or /root/.local/bin
-    if [[ -f /opt/app-root/src/.local/bin/yq ]]; then cp /opt/app-root/src/.local/bin/yq /usr/local/bin/; \
-    elif [[ -f /root/.local/bin/yq ]]; then cp /root/.local/bin/yq /usr/local/bin/; fi && \
+    for d in /opt/app-root/src/.local /root/.local; do \
+      if [[ -d ${d} ]]; then \
+        cp ${d}/bin/yq /usr/local/bin/; \
+        pushd ${d}/lib/python3.6/site-packages/ >/dev/null; \
+          cp -r PyYAML* xmltodict* yaml* yq* /usr/lib/python3.6/site-packages/; \
+        popd >/dev/null; \
+      fi; \
+    done && \
     chmod +x /usr/local/bin/yq && \
     ln -s /usr/bin/python3.6 /usr/bin/python
 
