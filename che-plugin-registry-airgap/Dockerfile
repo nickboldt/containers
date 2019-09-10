@@ -1,4 +1,5 @@
-# Copyright (c) 2019 Red Hat, Inc.
+#
+# Copyright (c) 2018-2019 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -134,7 +135,6 @@ WORKDIR /var/www/html/
 
 RUN chmod -c +x /var/www/html/*.sh && \
     ./check_plugins_location.sh v3 && \
-    ./check_plugins_images.sh && \
     ./set_plugin_dates.sh && \
     ./check_plugins_viewer_mandatory_fields.sh && \
     ./ensure_latest_exists.sh && \
