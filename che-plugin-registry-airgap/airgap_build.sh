@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 #
 # Builds this container, including locally fetched plugins and replaces references to docker/quay/RHCC with specified container registry
 
