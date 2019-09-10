@@ -56,13 +56,13 @@ COPY content_sets_epel7.repo /etc/yum.repos.d/
 RUN microdnf install -y bash yum gzip tar jq python3-six python3-pip && microdnf -y clean all && \
     # install yq (depends on jq and pyyaml - if jq and pyyaml not already installed, this will try to compile it)
     if [[ -f /tmp/root-local.tgz ]]; then mkdir -p /root/.local && tar xf /tmp/root-local.tgz -C /root/.local/ && rm -fr /tmp/root-local.tgz; fi && \
-    /usr/bin/pip3.6 install --user yq && \
+    /usr/bin/pip3.6 install --user yq jsonschema && \
     # could be installed in /opt/app-root/src/.local/bin or /root/.local/bin
     for d in /opt/app-root/src/.local /root/.local; do \
       if [[ -d ${d} ]]; then \
-        cp ${d}/bin/yq /usr/local/bin/; \
+        cp ${d}/bin/yq ${d}/bin/jsonschema /usr/local/bin/; \
         pushd ${d}/lib/python3.6/site-packages/ >/dev/null; \
-          cp -r PyYAML* xmltodict* yaml* yq* /usr/lib/python3.6/site-packages/; \
+          cp -r PyYAML* xmltodict* yaml* yq* jsonschema* /usr/lib/python3.6/site-packages/; \
         popd >/dev/null; \
       fi; \
     done && \
@@ -129,14 +129,14 @@ STOPSIGNAL SIGWINCH
 # PHASE TWO: configure registry image
 #################
 
-COPY .htaccess README.md ./scripts/*.sh /var/www/html/
+COPY .htaccess README.md ./scripts/*.sh ./scripts/meta.yaml.schema /var/www/html/
 COPY /v3 /var/www/html/v3
 WORKDIR /var/www/html/
 
 RUN chmod -c +x /var/www/html/*.sh && \
     ./check_plugins_location.sh v3 && \
-    ./set_plugin_dates.sh && \
-    ./check_plugins_viewer_mandatory_fields.sh && \
+    ./set_plugin_dates.sh v3 && \
+    ./check_plugins_viewer_mandatory_fields.sh v3 && \
     ./ensure_latest_exists.sh && \
     ./index.sh v3 > /var/www/html/v3/plugins/index.json && \
     chmod -c -R g+rwX /var/www/html/v3/plugins
