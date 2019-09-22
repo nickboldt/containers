@@ -43,7 +43,7 @@ USER root
 
 # 1.8.0 or 11
 ARG INSTALL_VERSION=11
-RUN microdnf -y install tar gzip java-${INSTALL_VERSION}-openjdk java-${INSTALL_VERSION}-openjdk-devel java-${INSTALL_VERSION}-openjdk-headless && \
+RUN microdnf -y install which tar gzip java-${INSTALL_VERSION}-openjdk java-${INSTALL_VERSION}-openjdk-devel java-${INSTALL_VERSION}-openjdk-headless && \
     microdnf -y clean all && rm -rf /var/cache/yum && echo "Installed Packages" && rpm -qa | sort -V && echo "End Of Installed Packages"
 
 ################# 

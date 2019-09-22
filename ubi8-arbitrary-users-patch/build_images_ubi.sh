@@ -32,7 +32,7 @@ while read -r line; do
   INSTALL_VERSION=""; if [[ $base_image_name == *";"* ]]; then INSTALL_VERSION="${base_image_name##*;}"; base_image_name="${base_image_name%%;*}"; fi
   base_image=$(echo "$line" | tr -s ' ' | cut -f 2 -d ' ')
   echo "Building ${NAME_FORMAT}/${base_image_name}:${TAG} based on $base_image, with INSTALL_VERSION=${INSTALL_VERSION} ..."
-  docker build -t "${NAME_FORMAT}/${base_image_name}:${TAG}" --build-arg FROM_IMAGE="$base_image" --build-arg INSTALL_VERSION="$INSTALL_VERSION" -f Dockerfile.ubi --no-cache "${SCRIPT_DIR}"/
+  docker build -t "${NAME_FORMAT}/${base_image_name}:${TAG}" --build-arg FROM_IMAGE="$base_image" --build-arg INSTALL_VERSION="$INSTALL_VERSION" -f Dockerfile.ubi --no-cache --squash "${SCRIPT_DIR}"/
   if ${PUSH_IMAGES}; then
     echo "Pushing ${NAME_FORMAT}/${base_image_name}:${TAG}" to remote registry
     docker push "${NAME_FORMAT}/${base_image_name}:${TAG}"
