@@ -1,0 +1,9 @@
+This is a fork of https://github.com/eclipse/che-devfile-registry/tree/master/arbitrary-users-patch to enable use of UBI8 for the JDK8/11 + maven 3.6 images.
+
+For the full list of containers tht Che 7 uses, see
+
+https://github.com/eclipse/che-devfile-registry/blob/master/arbitrary-users-patch/base_images
+
+See also:
+
+https://github.com/eclipse/che/issues/14623
