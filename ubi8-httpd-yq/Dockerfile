@@ -14,7 +14,7 @@ FROM registry.access.redhat.com/ubi8-minimal:8.0
 
 USER root
 
-# enable epel 7 content set to resolve jq as rpm
+# enable epel 7 content set to resolve jq as rpm (not yet in epel 8)
 COPY content_sets_epel7.repo /etc/yum.repos.d/
 
 RUN microdnf install -y bash yum gzip tar findutils jq python3-six python3-pip && microdnf -y clean all && \
