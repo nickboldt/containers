@@ -11,10 +11,7 @@
 #
 
 # https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8-minimal
-# FROM registry.access.redhat.com/ubi8-minimal:8.0
-
-ARG FROM_IMAGE=registry.access.redhat.com/ubi8-minimal:8.0
-FROM ${FROM_IMAGE}
+FROM ubi8-minimal:8.0
 
 ENV SUMMARY="Red Hat CodeReady Workspaces java8-maven container" \
     DESCRIPTION="Red Hat CodeReady Workspaces java8-maven container" \
@@ -36,6 +33,15 @@ LABEL summary="$SUMMARY" \
       usage=""
 
 USER root
+
+# to get all the maven deps pre-fetched so we can build in Brew:
+# 1. fetch the tarball
+#    MAVEN_VERSION=3.6.2; BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries; curl -fsSL -o apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz
+# 2. add it to dist-git so it's part of this repo
+#    rhpkg add-sources apache-maven.tar.gz
+
+# built in Brew, use tarball in lookaside cache
+COPY apache-maven.tar.gz /tmp/apache-maven.tar.gz
 
 ################# 
 # PHASE ONE: create ubi8-minimal image with JDK 8 or 11
