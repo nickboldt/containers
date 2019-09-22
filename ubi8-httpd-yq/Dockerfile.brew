@@ -29,7 +29,8 @@ COPY root-local.tgz /tmp/root-local.tgz
 # enable rhel 8 content sets (from Brew) to resolve jq as rpm
 COPY content_sets_brew.repo /etc/yum.repos.d/
 
-RUN microdnf install -y bash yum gzip tar findutils jq python3-six python3-pip && microdnf -y clean all && \
+RUN microdnf install -y bash yum gzip tar findutils jq python3-six python3-pip && \
+    microdnf -y clean all && rm -rf /var/cache/yum && echo "Installed Packages" && rpm -qa | sort -V && echo "End Of Installed Packages" && \
     \
     # if we copied the tarball above, we can use it here
     if [[ -f /tmp/root-local.tgz ]]; then mkdir -p /root/.local/ && tar xzf /tmp/root-local.tgz -C /root/.local/; fi && \
