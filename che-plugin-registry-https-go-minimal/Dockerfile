@@ -1,6 +1,12 @@
-# build with:
+# Create self-signed certs:
+# openssl genrsa -out https-server.key 2048
+# openssl ecparam -genkey -name secp384r1 -out https-server.key
+# openssl req -new -x509 -sha256 -key https-server.key -out https-server.crt -days 3650
+
+# Build with:
 # docker kill www; docker rm www; docker build . -t registry:latest --squash
-# test with:
+
+# Test with:
 # docker run -d -it --name www registry:latest && \
 # TEST_IP=$(docker inspect www | grep IPAddress | grep -v Secondary | tr -d " " | uniq | sed -e "s#\"IPAddress\":\"\(.\+\)\",#\1#")
 # if [[ ${TEST_IP} ]]; then google-chrome https://${TEST_IP}:8843/v3/plugins/; fi
