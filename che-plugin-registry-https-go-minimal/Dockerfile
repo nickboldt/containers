@@ -36,11 +36,8 @@ COPY --from=builder \
     /go/src/${APP_NAME}/https-server.key \
     /go/src/${APP_NAME}/https-server.crt \
     /www/
-COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /go/src/${APP_NAME}/v3 /www/v3 
-
 COPY /v3 /www/html/v3 
 
 EXPOSE ${PORT}/tcp
-
 ENTRYPOINT ["/www/registry"]
